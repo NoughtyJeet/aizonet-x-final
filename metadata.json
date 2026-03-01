@@ -1,0 +1,8 @@
+{
+  "name": "AIZONET - AI Tools Directory",
+  "description": "A comprehensive directory of the world's best AI tools, featuring discovery, detailed reviews, and AI-powered insights.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
