@@ -63,7 +63,7 @@ export const generateToolSummary = async (toolName: string, description: string)
   try {
     const ai = getAIClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         systemInstruction,
@@ -108,7 +108,7 @@ export const sendChatQuery = async (history: { role: string; parts: { text: stri
   try {
     const ai = getAIClient();
     const chat = ai.chats.create({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
     });
 
     const response = await chat.sendMessage({
@@ -151,7 +151,7 @@ export const generateComparisonContent = async (tool1: any, tool2: any, tool3?: 
   try {
     const ai = getAIClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         systemInstruction,
