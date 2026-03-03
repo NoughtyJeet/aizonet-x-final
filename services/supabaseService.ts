@@ -232,7 +232,11 @@ export const supabaseService = {
       .eq('id', user.id)
       .single();
 
-    if (error) return 'User'; // Default to User if profile not found
+    if (error) {
+      console.error('❌ FATAL AUTH CHECK ERROR:', error);
+      console.error('Checking ID:', user.id);
+      return 'User'; // Default to User if profile not found
+    }
     return data.role as 'Admin' | 'User';
   },
 
