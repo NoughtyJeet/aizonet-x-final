@@ -10,7 +10,7 @@ export const supabaseService = {
       .from('tools')
       .select('*')
       .order('createdAt', { ascending: false });
-    
+
     if (error) throw error;
     return data as AITool[];
   },
@@ -21,7 +21,7 @@ export const supabaseService = {
       .select('*')
       .eq('slug', slug)
       .single();
-    
+
     if (error) throw error;
     return data as AITool;
   },
@@ -35,7 +35,7 @@ export const supabaseService = {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Supabase upsertTool error:', error);
       throw error;
@@ -48,7 +48,7 @@ export const supabaseService = {
       .from('tools')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
   },
 
@@ -58,7 +58,7 @@ export const supabaseService = {
       .from('categories')
       .select('*')
       .order('name');
-    
+
     if (error) throw error;
     return data as Category[];
   },
@@ -69,7 +69,7 @@ export const supabaseService = {
       .upsert(category)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data as Category;
   },
@@ -79,7 +79,7 @@ export const supabaseService = {
       .from('categories')
       .delete()
       .eq('id', id);
-    
+
     return { error };
   },
 
@@ -89,7 +89,7 @@ export const supabaseService = {
       .from('posts')
       .select('*')
       .order('date', { ascending: false });
-    
+
     if (error) throw error;
     return data as BlogPost[];
   },
@@ -100,7 +100,7 @@ export const supabaseService = {
       .select('*')
       .eq('slug', slug)
       .single();
-    
+
     if (error) throw error;
     return data as BlogPost;
   },
@@ -115,7 +115,7 @@ export const supabaseService = {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Supabase upsertPost error:', error);
       throw error;
@@ -128,7 +128,7 @@ export const supabaseService = {
       .from('posts')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
   },
 
@@ -139,7 +139,7 @@ export const supabaseService = {
       .select('*')
       .eq('id', 'site-settings')
       .single();
-    
+
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
     return data?.value as SiteSettings | undefined;
   },
@@ -150,19 +150,24 @@ export const supabaseService = {
       .upsert({ id: 'site-settings', value: settings })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data.value as SiteSettings;
   },
 
   // Profiles / Users
-  async getProfiles() {
-    const { data, error } = await supabase
+  async getProfiles(page: number = 1, pageSize: number = 20) {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('profiles')
-      .select('*');
-    
+      .select('*', { count: 'exact' })
+      .range(from, to)
+      .order('id'); // Or created_at if added
+
     if (error) throw error;
-    return data;
+    return { data, count };
   },
 
   async upsertProfile(profile: any) {
@@ -171,18 +176,25 @@ export const supabaseService = {
       .upsert(profile)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
 
   async deleteProfile(id: string) {
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+    // Attempt the secure RPC method first (which deletes from auth.users cascading to profiles)
+    const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: id });
+
+    if (error) {
+      console.warn('RPC delete failed, falling back to direct profile deletion:', error);
+      // Fallback for mock data or if RPC is not yet created
+      const { error: fallbackError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id);
+
+      if (fallbackError) throw fallbackError;
+    }
   },
 
   async searchTools(query: string) {
@@ -193,7 +205,7 @@ export const supabaseService = {
       .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
       .eq('status', 'active')
       .limit(8);
-    
+
     if (error) throw error;
     return data as AITool[];
   },
@@ -205,7 +217,7 @@ export const supabaseService = {
       .select('*')
       .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
       .limit(5);
-    
+
     if (error) throw error;
     return data as BlogPost[];
   },
@@ -219,7 +231,7 @@ export const supabaseService = {
       .select('role')
       .eq('id', user.id)
       .single();
-    
+
     if (error) return 'User'; // Default to User if profile not found
     return data.role as 'Admin' | 'User';
   },
@@ -250,7 +262,7 @@ export const supabaseService = {
       if (postsCount === 0 && MOCK_POSTS.length > 0) {
         await supabase.from('posts').insert(MOCK_POSTS);
       }
-      
+
       console.log('Initial seeding check complete');
     } catch (err) {
       console.error('Seeding failed:', err);

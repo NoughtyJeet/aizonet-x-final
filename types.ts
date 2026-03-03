@@ -71,7 +71,8 @@ export type Theme = 'light' | 'dark';
 export interface AdminUser {
   id: string;
   email: string;
-  role: 'super_admin' | 'editor';
+  role: 'super_admin' | 'editor' | 'Admin' | 'User';
+  status?: 'active' | 'suspended';
 }
 
 export interface SEOSettings {
