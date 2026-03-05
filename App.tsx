@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -317,6 +318,7 @@ const App: React.FC = () => {
           </Routes>
   
           <CookieConsent />
+          <SpeedInsights />
   
           {isSearchOpen && (
             <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-slate-900/40 backdrop-blur-md px-4" onClick={() => {setIsSearchOpen(false); setSearchQuery('');}}>
